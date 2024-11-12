@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LLAMA</title>
+  <style>
+    * {
+      padding: 0;
+      margin: 0;
+      box-sizing: border-box;
+    }
+
+    *:hover,
+    *:focus {
+      outline: none;
+    }
+
+    .chat {
+      width: 100%;
+      height: calc(100vh - 50px);
+      min-height: 100%;
+      padding: 15px 30px;
+      margin: 0 auto;
+      overflow-y: scroll;
+      background-color: #fff;
+      transform: rotate(180deg);
+      direction: rtl;
+    }
+    .chat__wrapper {
+      display: -webkit-box;
+      display: -ms-flexbox;
+      display: flex;
+      -webkit-box-orient: vertical;
+      -webkit-box-direction: normal;
+      -ms-flex-direction: column-reverse;
+      flex-direction: column-reverse;
+      -webkit-box-pack: end;
+      -ms-flex-pack: end;
+      justify-content: flex-end;
+    }
+    .chat__message {
+      font-size: 18px;
+      padding: 10px 20px;
+      border-radius: 25px;
+      color: #000;
+      background-color: #e6e7ec;
+      width: -webkit-fit-content;
+      width: -moz-fit-content;
+      width: fit-content;
+      position: relative;
+      margin: 15px 0;
+      word-break: break-all;
+      transform: rotate(180deg);
+      direction: ltr;
+    }
+    .chat__message:after {
+      content: "";
+      width: 20px;
+      height: 12px;
+      display: block;
+      background-repeat: no-repeat;
+      background-position: center;
+      background-size: contain;
+      position: absolute;
+      bottom: -2px;
+      left: -5px;
+    }
+    .chat__message-own {
+      color: #fff;
+      margin-left: auto;
+      background-color: #00a9de;
+    }
+    .chat__message-own:after {
+      width: 19px;
+      height: 13px;
+      left: inherit;
+      right: -5px;
+    }
+
+    .chat__form {
+      background-color: #e0e0e0;
+    }
+    .chat__form form {
+      margin: 0 auto;
+      height: 50px;
+      display: -webkit-box;
+      display: -ms-flexbox;
+      display: flex;
+      -webkit-box-align: center;
+      -ms-flex-align: center;
+      align-items: center;
+    }
+    .chat__form input {
+      height: 40px;
+      font-size: 16px;
+      min-width: 90%;
+      padding-left: 15px;
+      background-color: #fff;
+      border-radius: 15px;
+      border: none;
+    }
+    .chat__form button {
+      width: 10%;
+      height: 100%;
+      font-size: 16px;
+      background-color: transparent;
+      border: none;
+      text-align: center;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+    .chat__form button:hover {
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+<div class="chat">
+  <div class="chat__wrapper">
+
+  </div>
+</div>
+<div class="chat__form">
+  <form id="chat__form">
+    <input id="question" type="text" placeholder="Type your message here ..." autocomplete="off">
+    <button type="submit" onclick="event.preventDefault();getAns()">Send</button>
+  </form>
+</div>
+<div id="result"></div>
+
+
+
+
+<span id="answer"></span>
+<script>
+  const socket = new WebSocket('ws://localhost:8765');
+
+  socket.addEventListener('open', (event) => {
+    console.log('WebSocket connection opened:', event);
+
+  });
+
+
+  socket.addEventListener('message', (event) => {
+
+    var chatWrapper = document.querySelector('.chat__wrapper');
+    var lastMessage = chatWrapper.querySelector('.chat__message:last-child');
+
+    if (lastMessage) {
+      var divInsideLastMessage = lastMessage.querySelector('div');
+      if (divInsideLastMessage) {
+        divInsideLastMessage.innerText += event.data.toString();
+      }
+    }
+
+  });
+
+
+  socket.addEventListener('close', (event) => {
+    console.log('WebSocket connection closed:', event);
+	alert("Disconnected");
+  });
+
+  socket.addEventListener('error', (event) => {
+    console.error('WebSocket error:', event);
+  });
+  function getAns(){
+    let ques = document.getElementById("question").value;
+    document.getElementById("question").value ="";
+    let messageDiv = document.createElement('div');
+    messageDiv.className = 'chat__message chat__message-own';
+
+    let textDiv = document.createElement('div');
+    textDiv.textContent = ques;
+    messageDiv.appendChild(textDiv);
+
+    document.querySelector('.chat__wrapper').appendChild(messageDiv);
+
+    socket.send(ques);
+    let messageDiv1 = document.createElement('div');
+    messageDiv1.className = 'chat__message';
+
+    let textDiv1 = document.createElement('div');
+    textDiv1.textContent = "";
+    messageDiv1.appendChild(textDiv1);
+
+    document.querySelector('.chat__wrapper').appendChild(messageDiv1);
+  }
+</script>
+</body>
+</html>
